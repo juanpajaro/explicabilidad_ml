@@ -9,7 +9,7 @@
 
 # Load the conda environment
 source /zine/apps/anaconda_salud/etc/profile.d/conda.sh
-conda activate alib
+conda activate alibi_env
 echo "Starting computational phenotyping job..."
 echo "El ambiente activado es: "$CONDA_DEFAULT_ENV
 
