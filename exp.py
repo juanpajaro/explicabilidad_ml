@@ -44,14 +44,14 @@ if __name__ == "__main__":
     model.summary()
 
     X_sample = X_train[:1, :]
-    predictions = model(X_test).numpy().argmax(axis=1)
+    predictions = model(X_sample).numpy().argmax(axis=1)
     print(predictions)
 
     # 6. Ejecutar IG
     embedding_layer = model.get_layer('embedding_1')
     ig = load_model_ig(model, embedding_layer)
     # 7. Explicación
-    explanation = ig.explain(X_test, target=predictions)
+    explanation = ig.explain(X_sample, target=predictions)
 
     # 7. Visualizar las atribuciones
     attributions = explanation.attributions[0]  # (100, embedding_dim)
