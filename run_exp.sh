@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=cp
+#SBATCH --job-name=explications
 #SBATCH --output=logs/exp_out_%j.txt
 #SBATCH --error=logs/exp_err_%j.txt
 #SBATCH --ntasks=1
@@ -9,7 +9,7 @@
 
 # Load the conda environment
 source /zine/apps/anaconda_salud/etc/profile.d/conda.sh
-conda activate ali_env
+conda activate alib
 echo "Starting computational phenotyping job..."
 echo "El ambiente activado es: "$CONDA_DEFAULT_ENV
 
