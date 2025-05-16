@@ -93,8 +93,8 @@ def posiciones_de_uno(arr):
 
 if __name__ == "__main__":
     
-    version = "lstm_v53.h5"
-    i = 34    
+    version = "lstm_v125.h5"
+    i = 0    
     ruta_modelo = "./models/"+version
     ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
     

@@ -91,10 +91,13 @@ def main():
     # Buscar coincidencias
     matches = find_matching_sequences(X_train, terms, vocabulary, labels)
 
+    # Ordenar por match_count (índice 2 de la tupla), descendente
+    sorted_matches = sorted(matches, key=lambda x: x[2], reverse=True)
+
     # Mostrar resultados
     print("Resumen de coincidencias:")
-    for idx, label, count, words in matches:
-        if label == 1:
+    for idx, label, count, words in sorted_matches:
+        #if label == 1:
             print(f"Sec {idx} Label: {label}: {count} coincidencias → {set(words)}")
 if __name__ == "__main__":
     main()
