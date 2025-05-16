@@ -86,8 +86,39 @@ def main():
     
     # Definir términos a buscar
     #terms = ["diabetes", "hipertension", "obesidad", "tumor", "laringitis"]
-    terms = ["diabetes", "hipertension", "obesidad"]
-
+    #terms = ["diabetes", "hipertension", "obesidad"]
+    #terms = ["hipersomnia","sindrome de piernas inquietas","hipertenso","enfermedad cardíaca", "hipoglucemia", "trastorno distimico", "demencias"]
+    #terms = ["Narcolepsia","Neuropatía periférica","Hipertrofia ventricular izquierda","Insuficiencia cardíaca congestiva","Diabetes mellitus tipo 2","Trastorno depresivo mayor","Enfermedad de Alzheimer"]    
+        
+    terms = [
+    "hipersomnia",
+    "narcolepsia",
+    "piernas",
+    "inquietas",
+    "neuropatia",
+    "periferica",
+    "hipertenso",
+    "hipertrofia",
+    "ventricular",
+    "izquierda",    
+    "cardiaca",
+    "insuficiencia",
+    "congestiva",
+    "hipoglucemia",
+    "diabetes",
+    "mellitus",
+    "tipo",
+    "2",
+    "trastorno",
+    "distimico",
+    "depresivo",
+    "mayor",
+    "demencias",
+    "alzheimer",
+    "hipertension",
+    "obesidad"]
+    
+    
     # Buscar coincidencias
     matches = find_matching_sequences(X_train, terms, vocabulary, labels)
 
