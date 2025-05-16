@@ -94,11 +94,12 @@ def posiciones_de_uno(arr):
 if __name__ == "__main__":
     
     version = "lstm_v53.h5"
-    i = 296    
-    ruta_modelo = "./models/"+version    
+    i = 34    
+    ruta_modelo = "./models/"+version
+    ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
     
 
-    folder = buscar_valor_performance(ruta_csv="./performance_report.csv", columna_busqueda="model_name", valor_busqueda=version, columna_retorno="path_vectorization")
+    folder = buscar_valor_performance(ruta_csv=ruta_performance, columna_busqueda="model_name", valor_busqueda=version, columna_retorno="path_vectorization")
     print("folder:", folder)
 
     folder_recortado = recortar_folder(folder, "compu_Pipe_V3", incluir_carpeta=False)
@@ -125,10 +126,23 @@ if __name__ == "__main__":
     
     X_sample = X_train[i:i+1, :]
     print("X_sample shape:", X_sample.shape)    
-    predictions = model(X_sample).numpy().argmax(axis=1)
+    predictions = model.predict(X_sample)
+    print("predictions shape:", predictions.shape)
+    print(predictions)
+    predictions = (predictions >= 0.5).astype(int)
+    predictions = predictions.item()
+    #predictions = predictions[1]
     print("pred:", predictions)
+    #print("pred shape:", predictions.shape)
     print("target:", y_train[i:i+1])
     label = y_train[i:i+1]
+
+    t_pred = model.predict(X_train)
+    #t_pred = t_pred.argmax(axis=1)
+    t_pred = (t_pred >= 0.5).astype(int)
+    #print("t_pred:", t_pred)
+    print("t_pred shape:", t_pred.shape)
+    print("t_pred count unique:", np.unique(t_pred, return_counts=True))
 
     # 6. Ejecutar IG
     embedding_layer = model.layers[0]
