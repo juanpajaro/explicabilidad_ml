@@ -52,8 +52,9 @@ def find_matching_sequences(
 
 def main():
     # Cargar vocabulario y secuencias
-    version = "lstm_v125.h5"
-    ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"  
+    version = "lstm_v165.h5"
+    #ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"
+    ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"
 
     folder = utils.buscar_valor_performance(ruta_csv=ruta_performance, columna_busqueda="model_name", valor_busqueda=version, columna_retorno="path_vectorization")
     print("folder:", folder)
@@ -128,7 +129,7 @@ def main():
     # Mostrar resultados
     print("Resumen de coincidencias:")
     for idx, label, count, words in sorted_matches:
-        #if label == 1:
+        if label == 1:
             print(f"Sec {idx} Label: {label}: {count} coincidencias → {set(words)}")
 if __name__ == "__main__":
     main()
