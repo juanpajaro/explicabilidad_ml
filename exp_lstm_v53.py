@@ -93,9 +93,9 @@ def posiciones_de_uno(arr):
 
 if __name__ == "__main__":
     
-    version = "lstm_v165.h5"
-    #9, 30, 33, 34, 35, 38, 43, 75, 94
-    i = 170
+    version = "lstm_v224.h5"
+    #145, 178, 171, 184
+    i = 187
     ruta_modelo = "./models/"+version
     ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
     

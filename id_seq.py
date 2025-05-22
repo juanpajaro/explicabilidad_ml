@@ -52,7 +52,7 @@ def find_matching_sequences(
 
 def main():
     # Cargar vocabulario y secuencias
-    version = "lstm_v165.h5"
+    version = "lstm_v224.h5"
     #ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"
     ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"
 
@@ -131,5 +131,6 @@ def main():
     for idx, label, count, words in sorted_matches:
         if label == 1:
             print(f"Sec {idx} Label: {label}: {count} coincidencias → {set(words)}")
+            
 if __name__ == "__main__":
     main()
