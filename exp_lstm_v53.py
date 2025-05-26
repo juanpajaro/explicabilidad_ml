@@ -91,11 +91,145 @@ def posiciones_de_uno(arr):
     """Devuelve las posiciones (índices) donde el valor es 1 en un array NumPy."""
     return np.where(arr == 1)[0]
 
+
+def sumar_por_valor(arr1, arr2):
+    """
+    Suma los valores de arr2 agrupados por el valor y posición correspondiente en arr1.
+    Retorna una lista de diccionarios con el valor de arr1 como clave y la suma de arr2 como valor.
+    Imprime k y v a medida que se agregan.
+    Ejemplo de retorno: [{k: suma}, ...]
+    """
+    if arr1.shape != arr2.shape:
+        raise ValueError("Los arreglos deben tener el mismo tamaño.")    
+    for k, v in zip(arr1, arr2):
+        encontrado = False
+        for d in lista_resultado:
+            if k in d:
+                d[k] += v
+                #print(f"Actualizando: {k} -> {d[k]}")
+                encontrado = True
+                break
+        if not encontrado:
+            lista_resultado.append({k: v})
+            #print(f"Agregando: {k} -> {v}")
+    return lista_resultado
+
+def importancia_acumulada(lista_diccionarios, nuevos_diccionarios):
+    """
+    Acumula la importancia de los valores de una lista de nuevos diccionarios en lista_diccionarios.
+    Si la clave ya existe, suma el valor; si no, la agrega.
+    Retorna la lista actualizada de diccionarios únicos.
+    """
+    # Convertir lista de diccionarios acumulados a un solo diccionario
+    acumulado = {}
+    for d in lista_diccionarios:
+        for k, v in d.items():
+            if k in acumulado:
+                acumulado[k] += v
+            else:
+                acumulado[k] = v
+    # Iterar sobre la lista de nuevos diccionarios y acumular
+    for d in nuevos_diccionarios:
+        for k, v in d.items():
+            if k in acumulado:
+                acumulado[k] += v
+            else:
+                acumulado[k] = v
+    # Convertir de nuevo a lista de diccionarios únicos
+    lista_resultado = [{k: acumulado[k]} for k in acumulado]
+    return lista_resultado
+
+def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i):
+    """
+    Dibuja una gráfica de barras horizontales para las importancias de tokens de un paciente.
+    Muestra solo el valor sumado (por token único) al final de cada barra y guarda la imagen como archivo PNG.
+    """
+    import matplotlib.pyplot as plt
+
+    # Agrupar importancias por token único
+    from collections import defaultdict
+    suma_por_token = defaultdict(float)
+    for token, imp in zip(X_seq, token_imp):
+        suma_por_token[token] += imp
+
+    tokens_unicos = list(suma_por_token.keys())
+    importancias_sumadas = [suma_por_token[token] for token in tokens_unicos]
+
+    print("pintando la grafica")
+    fig, ax = plt.subplots(figsize=(10, 10))
+    bars = ax.barh(tokens_unicos, importancias_sumadas)
+    ax.set_xlabel('Importancia')
+    ax.set_title(f'Atribuciones de Integrated Gradients\nModel: {version} | Pred: {predictions} | label: {label}')
+
+    # Añadir solo el valor sumado al final de cada barra
+    for bar, suma in zip(bars, importancias_sumadas):
+        width = bar.get_width()
+        ax.annotate(f'{suma:.2f}',
+                    xy=(width, bar.get_y() + bar.get_height() / 2),
+                    xytext=(5, 0),
+                    textcoords="offset points",
+                    va='center',
+                    fontsize=8)
+
+    nombre_grafica = f"grafica_{version}_{i}.png"
+    print("nombre grafica:", nombre_grafica)
+    plt.savefig(nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulada", nombre_grafica="grafica_acumulada.png", vocabulary=None, top_n=None):
+    """
+    Grafica una lista de diccionarios donde los keys son las etiquetas (x) y los values son los valores (y).
+    Los datos se muestran de menor a mayor y se puede limitar el número de elementos mostrados con top_n.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Unir todos los diccionarios en uno solo para evitar duplicados
+    datos = {}
+    for d in lista_diccionarios:
+        for k, v in d.items():
+            datos[k] = v
+
+    # Ordenar los datos de menor a mayor valor
+    datos_ordenados = sorted(datos.items(), key=lambda item: item[1])
+
+    # Si se especifica top_n, tomar solo los últimos top_n elementos (los de mayor valor)
+    if top_n is not None:
+        datos_ordenados = datos_ordenados[-top_n:]
+
+    etiquetas = [k for k, v in datos_ordenados]
+    valores = [v for k, v in datos_ordenados]
+
+    # Convertir etiquetas si hay vocabulario
+    if vocabulary is not None:
+        etiquetas_n = convert_to_text(np.array(etiquetas).reshape(1, -1), vocabulary)
+    else:
+        etiquetas_n = etiquetas
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    bars = ax.barh(etiquetas_n, valores)
+    ax.set_xlabel('Importancia')
+    ax.set_title(titulo)
+
+    # Añadir el valor al final de cada barra
+    for bar, valor in zip(bars, valores):
+        width = bar.get_width()
+        ax.annotate(f'{valor:.2f}',
+                    xy=(width, bar.get_y() + bar.get_height() / 2),
+                    xytext=(5, 0),
+                    textcoords="offset points",
+                    va='center',
+                    fontsize=8)
+
+    plt.tight_layout()
+    plt.savefig(nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Gráfica guardada como {nombre_grafica}")
+
 if __name__ == "__main__":
     
     version = "lstm_v224.h5"
-    #145, 178, 171, 184
-    i = 187
+
     ruta_modelo = "./models/"+version
     ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
     
@@ -110,8 +244,11 @@ if __name__ == "__main__":
     print("folder_n:", folder_n)
 
     vocabulary = load_numpy_array(folder_n + "vocab.npy")
+    print("vocabulary size:", len(vocabulary))
     X_train = load_numpy_array(folder_n + "X_train.npy")
+    print("X_train shape:", X_train.shape)
     X_test = load_numpy_array(folder_n + "X_test.npy")
+    print("X_test shape:", X_test.shape)
     y_train = load_numpy_array(folder_n + "y_train.npy")
     y_test = load_numpy_array(folder_n + "y_test.npy")
     print("y_test", y_test)
@@ -124,63 +261,88 @@ if __name__ == "__main__":
     model.summary()
 
     #print(X_train[:10, :])
+
+    l_patient = [145, 178, 171, 184, 179, 187]
+    #l_patient = [145, 178]
+    #i = 187
+    l_patient = np.arange(len(X_train)).tolist()
+    lista_resultado = []
+
+    for i in l_patient:
+        print("i:", i)
+        X_sample = X_train[i:i+1, :]
+        print("X_sample shape:", X_sample.shape)    
+        predictions = model.predict(X_sample)
+        print("predictions shape:", predictions.shape)
+        print(predictions)
+        predictions = (predictions >= 0.5).astype(int)
+        predictions = predictions.item()
+        #predictions = predictions[1]
+        #print("pred:", predictions)
+        #print("pred shape:", predictions.shape)
+        #print("target:", y_train[i:i+1])
+        label = y_train[i:i+1]
+
+        t_pred = model.predict(X_train)
+        #t_pred = t_pred.argmax(axis=1)
+        t_pred = (t_pred >= 0.5).astype(int)
+        #print("t_pred:", t_pred)
+        print("t_pred shape:", t_pred.shape)
+        #print("t_pred count unique:", np.unique(t_pred, return_counts=True))
+
+        # 6. Ejecutar IG
+        embedding_layer = model.layers[0]
+        #embedding_layer = model.get_layer('embedding_1')
+        print("cargue de Integrated Gradients")
+        ig = load_model_ig(model, embedding_layer)
+        # 7. Explicación
+        base = np.zeros_like(X_sample, dtype=np.float32)
+        print("calculando la explicacion")    
+        explanation = ig.explain(X_sample, baselines=0, target=predictions)
+
+        # 7. Visualizar las atribuciones
+        print("calculando las atribuciones")
+        attributions = explanation.attributions[0]  # (100, embedding_dim)
+        print('Attributions shape:', attributions.shape)
+        token_importances = np.sum(attributions, axis=-1)  # suma por embedding
+        print('Token importances shape:', token_importances.shape)
+        # Asegurarse de que token_importances es un array 1D
+        token_imp = np.array(token_importances).flatten()
+        print('Token_imp shape:', token_imp.shape)
+        #attrs = attributions.sum(axis=2)
+        #print('Attrs shape:', attrs.shape)    
+        
+        print("X_sample", X_sample)
+        X_seq = convert_to_text(X_sample, vocabulary)
+        print("X_seq:", X_seq)
+        #print("X_seq type:", type(X_seq))
+        print("X_seq shape:", len(X_seq))
+        #print("X_seq set:", set(X_seq))
+        print("X_seq_set len:", len(set(X_seq)))    
+        #attrs = token_imp[i]
+
+        X_sample_f = X_sample.flatten()
+        print("X_sample_f:", X_sample_f.shape)
+        lista_resultado = sumar_por_valor(X_sample_f, token_imp)
+        print("l_phe_patient:", lista_resultado)        
+
+
+        """
+        print("pintando la grafica")
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.barh(X_seq, token_imp)
+        ax.set_xlabel('Importancia')
+        ax.set_title(f'Atribuciones de Integrated Gradients\nModel: {version} | Pred: {predictions} | label: {label}')
+        print("nombre grafica:", "grafica_"+version+"_"+str(i)+".png")
+        plt.savefig("grafica_"+version+"_"+str(i)+".png", dpi=300, bbox_inches='tight')
+        #plt.show()
+        """
+
+        pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i)
+
+    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos", nombre_grafica="grafica_fenotipos_importantes.png", vocabulary=vocabulary, top_n=20)
+
+
     
-    X_sample = X_train[i:i+1, :]
-    print("X_sample shape:", X_sample.shape)    
-    predictions = model.predict(X_sample)
-    print("predictions shape:", predictions.shape)
-    print(predictions)
-    predictions = (predictions >= 0.5).astype(int)
-    predictions = predictions.item()
-    #predictions = predictions[1]
-    print("pred:", predictions)
-    #print("pred shape:", predictions.shape)
-    print("target:", y_train[i:i+1])
-    label = y_train[i:i+1]
 
-    t_pred = model.predict(X_train)
-    #t_pred = t_pred.argmax(axis=1)
-    t_pred = (t_pred >= 0.5).astype(int)
-    #print("t_pred:", t_pred)
-    print("t_pred shape:", t_pred.shape)
-    print("t_pred count unique:", np.unique(t_pred, return_counts=True))
-
-    # 6. Ejecutar IG
-    embedding_layer = model.layers[0]
-    #embedding_layer = model.get_layer('embedding_1')
-    print("cargue de Integrated Gradients")
-    ig = load_model_ig(model, embedding_layer)
-    # 7. Explicación
-    base = np.zeros_like(X_sample, dtype=np.float32)
-    print("calculando la explicacion")    
-    explanation = ig.explain(X_sample, baselines=0, target=predictions)
-
-    # 7. Visualizar las atribuciones
-    print("calculando las atribuciones")
-    attributions = explanation.attributions[0]  # (100, embedding_dim)
-    print('Attributions shape:', attributions.shape)
-    token_importances = np.sum(attributions, axis=-1)  # suma por embedding
-    print('Token importances shape:', token_importances.shape)
-    # Asegurarse de que token_importances es un array 1D
-    token_imp = np.array(token_importances).flatten()
-    #attrs = attributions.sum(axis=2)
-    #print('Attrs shape:', attrs.shape)    
-
-    
-    print("X_sample", X_sample)
-    X_seq = convert_to_text(X_sample, vocabulary)
-    print("X_seq:", X_seq)
-    print("X_seq shape:", len(X_seq))
-    print("X_seq set:", set(X_seq))
-    #attrs = token_imp[i]
-
-
-    print("pintando la grafica")
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(X_seq, token_imp)
-    ax.set_xlabel('Importancia')
-    ax.set_title(f'Atribuciones de Integrated Gradients\nModel: {version} | Pred: {predictions} | label: {label}')
-    print("nombre grafica:", "grafica_"+version+"_"+str(i)+".png")
-    plt.savefig("grafica_"+version+"_"+str(i)+".png", dpi=300, bbox_inches='tight')
-    #plt.show()
 
