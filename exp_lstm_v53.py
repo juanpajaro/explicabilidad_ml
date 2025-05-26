@@ -92,27 +92,29 @@ def posiciones_de_uno(arr):
     return np.where(arr == 1)[0]
 
 
-def sumar_por_valor(arr1, arr2):
+def sumar_por_valor(arr1, arr2, absoluto=False):
     """
-    Suma los valores de arr2 agrupados por el valor y posición correspondiente en arr1.
-    Retorna una lista de diccionarios con el valor de arr1 como clave y la suma de arr2 como valor.
-    Imprime k y v a medida que se agregan.
-    Ejemplo de retorno: [{k: suma}, ...]
+    #Suma los valores de arr2 agrupados por el valor y posición correspondiente en arr1.
+    #Retorna una lista de diccionarios con el valor de arr1 como clave y la suma de arr2 como valor.
+    #Imprime k y v a medida que se agregan.
+    #Ejemplo de retorno: [{k: suma}, ...]
     """
     if arr1.shape != arr2.shape:
         raise ValueError("Los arreglos deben tener el mismo tamaño.")    
     for k, v in zip(arr1, arr2):
         encontrado = False
+        v_abs = abs(v) if absoluto else v
         for d in lista_resultado:
             if k in d:
-                d[k] += v
+                d[k] += v_abs
                 #print(f"Actualizando: {k} -> {d[k]}")
                 encontrado = True
                 break
         if not encontrado:
-            lista_resultado.append({k: v})
+            lista_resultado.append({k: v_abs})
             #print(f"Agregando: {k} -> {v}")
     return lista_resultado
+
 
 def importancia_acumulada(lista_diccionarios, nuevos_diccionarios):
     """
@@ -144,8 +146,7 @@ def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i
     Dibuja una gráfica de barras horizontales para las importancias de tokens de un paciente.
     Muestra solo el valor sumado (por token único) al final de cada barra y guarda la imagen como archivo PNG.
     """
-    import matplotlib.pyplot as plt
-
+    
     # Agrupar importancias por token único
     from collections import defaultdict
     suma_por_token = defaultdict(float)
@@ -173,7 +174,7 @@ def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i
 
     nombre_grafica = f"grafica_{version}_{i}.png"
     print("nombre grafica:", nombre_grafica)
-    plt.savefig(nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.savefig("./g_train/"+nombre_grafica, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
 def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulada", nombre_grafica="grafica_acumulada.png", vocabulary=None, top_n=None):
@@ -181,8 +182,6 @@ def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulad
     Grafica una lista de diccionarios donde los keys son las etiquetas (x) y los values son los valores (y).
     Los datos se muestran de menor a mayor y se puede limitar el número de elementos mostrados con top_n.
     """
-    import matplotlib.pyplot as plt
-    import numpy as np
 
     # Unir todos los diccionarios en uno solo para evitar duplicados
     datos = {}
@@ -222,7 +221,7 @@ def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulad
                     fontsize=8)
 
     plt.tight_layout()
-    plt.savefig(nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.savefig("./g_train/"+nombre_grafica, dpi=300, bbox_inches='tight')
     plt.close(fig)
     print(f"Gráfica guardada como {nombre_grafica}")
 
@@ -262,15 +261,16 @@ if __name__ == "__main__":
 
     #print(X_train[:10, :])
 
-    l_patient = [145, 178, 171, 184, 179, 187]
+    #l_patient = [145, 178, 171, 184, 179, 187]
     #l_patient = [145, 178]
     #i = 187
-    l_patient = np.arange(len(X_train)).tolist()
+    X_analysis = X_train
+    l_patient = np.arange(len(X_analysis)).tolist()
     lista_resultado = []
 
     for i in l_patient:
         print("i:", i)
-        X_sample = X_train[i:i+1, :]
+        X_sample = X_analysis[i:i+1, :]
         print("X_sample shape:", X_sample.shape)    
         predictions = model.predict(X_sample)
         print("predictions shape:", predictions.shape)
@@ -323,7 +323,7 @@ if __name__ == "__main__":
 
         X_sample_f = X_sample.flatten()
         print("X_sample_f:", X_sample_f.shape)
-        lista_resultado = sumar_por_valor(X_sample_f, token_imp)
+        lista_resultado = sumar_por_valor(X_sample_f, token_imp, absoluto=False)
         print("l_phe_patient:", lista_resultado)        
 
 
@@ -340,7 +340,7 @@ if __name__ == "__main__":
 
         pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i)
 
-    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos", nombre_grafica="grafica_fenotipos_importantes.png", vocabulary=vocabulary, top_n=20)
+    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos test", nombre_grafica="grafica_fenotipos_importantes_test_sin_abs_v1.png", vocabulary=vocabulary, top_n=20)
 
 
     
