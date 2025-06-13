@@ -18,6 +18,25 @@ def load_model_lstm(file_path):
     """
     return tf.keras.models.load_model(file_path)
 
+def recortar_hasta_punto(s_version):
+    """
+    Recorta el string recibido hasta el primer punto (no lo incluye).
+    Ejemplo: "lstm_v224.h5" -> "lstm_v224"
+    """
+    return s_version.split('.')[0]
+
+def crear_carpeta_si_no_existe(nombre_carpeta):
+    """
+    Recibe un string con el nombre de una carpeta.
+    Si la carpeta no existe en la ruta actual, la crea.
+    """
+    if not os.path.exists(nombre_carpeta):
+        os.makedirs(nombre_carpeta)
+        print(f"Carpeta creada: {nombre_carpeta}")
+    else:
+        print(f"La carpeta ya existe: {nombre_carpeta}")
+    return nombre_carpeta
+
 def load_model_ig(model, embedding_layer):
     ig = IntegratedGradients(model, layer=embedding_layer, n_steps=50, method='gausslegendre', internal_batch_size=100)
     return ig
@@ -141,7 +160,7 @@ def importancia_acumulada(lista_diccionarios, nuevos_diccionarios):
     lista_resultado = [{k: acumulado[k]} for k in acumulado]
     return lista_resultado
 
-def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i):
+def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i, n_carpeta):
     """
     Dibuja una gráfica de barras horizontales para las importancias de tokens de un paciente.
     Muestra solo el valor sumado (por token único) al final de cada barra y guarda la imagen como archivo PNG.
@@ -174,10 +193,10 @@ def pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i
 
     nombre_grafica = f"grafica_{version}_{i}.png"
     print("nombre grafica:", nombre_grafica)
-    plt.savefig("./g_train/"+nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.savefig(n_carpeta+"/"+nombre_grafica, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulada", nombre_grafica="grafica_acumulada.png", vocabulary=None, top_n=None):
+def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulada", nombre_grafica="grafica_acumulada.png", vocabulary=None, top_n=None, save_file=None):
     """
     Grafica una lista de diccionarios donde los keys son las etiquetas (x) y los values son los valores (y).
     Los datos se muestran de menor a mayor y se puede limitar el número de elementos mostrados con top_n.
@@ -221,13 +240,17 @@ def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulad
                     fontsize=8)
 
     plt.tight_layout()
-    plt.savefig("./g_train/"+nombre_grafica, dpi=300, bbox_inches='tight')
+    plt.savefig(save_file+"/"+nombre_grafica, dpi=300, bbox_inches='tight')
     plt.close(fig)
     print(f"Gráfica guardada como {nombre_grafica}")
 
 if __name__ == "__main__":
     
-    version = "lstm_v224.h5"
+    version = "attention_v439.h5"
+    s_version = recortar_hasta_punto(version)
+    print("s_version:", s_version)
+    n_carpeta = crear_carpeta_si_no_existe("./g_train"+"/"+ s_version)
+    print("name_carpeta:", n_carpeta)
 
     ruta_modelo = "./models/"+version
     ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
@@ -338,9 +361,9 @@ if __name__ == "__main__":
         #plt.show()
         """
 
-        pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i)
+        pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i, n_carpeta)
 
-    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos test", nombre_grafica="grafica_fenotipos_importantes_test_sin_abs_v1.png", vocabulary=vocabulary, top_n=20)
+    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos train", nombre_grafica="grafica_fenotipos_importantes_train_sin_abs_v1.png", vocabulary=vocabulary, top_n=20, save_file=n_carpeta)
 
 
     
