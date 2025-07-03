@@ -246,14 +246,14 @@ def graficar_lista_diccionarios(lista_diccionarios, titulo="Importancia acumulad
 
 if __name__ == "__main__":
     
-    version = "attention_v439.h5"
+    version = "lstm_v977.h5"
     s_version = recortar_hasta_punto(version)
     print("s_version:", s_version)
     n_carpeta = crear_carpeta_si_no_existe("./g_train"+"/"+ s_version)
     print("name_carpeta:", n_carpeta)
 
     ruta_modelo = "./models/"+version
-    ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report.csv"    
+    ruta_performance = "/home/pajaro/compu_Pipe_V3/performance_zine/performance_report_osa.csv"    
     
 
     folder = buscar_valor_performance(ruta_csv=ruta_performance, columna_busqueda="model_name", valor_busqueda=version, columna_retorno="path_vectorization")
@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
         pintar_grafica_por_paciente(X_seq, token_imp, version, predictions, label, i, n_carpeta)
 
-    graficar_lista_diccionarios(lista_resultado, titulo="Atribucion global de conceptos train", nombre_grafica="grafica_fenotipos_importantes_train_sin_abs_v1.png", vocabulary=vocabulary, top_n=20, save_file=n_carpeta)
+    graficar_lista_diccionarios(lista_resultado, titulo="Global attribution concepts train", nombre_grafica="grafica_fenotipos_importantes_train_sin_abs_v1.png", vocabulary=vocabulary, top_n=20, save_file=n_carpeta)
 
 
     
